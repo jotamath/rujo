@@ -1,0 +1,2 @@
+int x = 10;
+x = y; // ERRO: y não existe!

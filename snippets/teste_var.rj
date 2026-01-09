@@ -1,0 +1,4 @@
+int idade = 25;
+string nome = "Gura";
+int nivel = 100;
+bool seraQueE = true;

@@ -1,0 +1,11 @@
+class Heroi {
+    prop string nome;
+    prop int nivel;
+
+    init(string n) {
+        this.nome = n;
+        this.nivel = 1;
+    }
+}
+
+int versao = 1;
