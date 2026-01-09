@@ -1,5 +1,7 @@
+<div align="center"><img width="300" height="300" align="center" alt="mascot" src="https://github.com/user-attachments/assets/b3b030b4-36cf-4466-99fd-90cd3a45aeea" />
+</div>
+
 # 📘 RUJO — Linguagem de Programação
-<img width="2048" height="2048" alt="guja" src="https://github.com/user-attachments/assets/b3b030b4-36cf-4466-99fd-90cd3a45aeea" />
 
 > **Slogan:** Simples como Go, Segura como Rust, Legível como Python.
 
