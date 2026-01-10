@@ -28,7 +28,9 @@ typedef enum {
     AST_TYPEOF,
     AST_BINARY_OP,
     AST_RETURN,
-    AST_IF
+    AST_IF,
+    AST_WHILE, // Novo
+    AST_FOR    // Novo
 } ASTNodeType;
 
 typedef struct ASTNode ASTNode;
@@ -58,10 +60,19 @@ struct ASTNode {
         struct { char* name; } ident;
         struct { char* name; struct ASTNode* args; } call;
         struct { struct ASTNode* expr; } type_of;
+        
         struct { struct ASTNode* left; char* op; struct ASTNode* right; } binary_op;
         struct { struct ASTNode* value; } ret;
         struct { struct ASTNode* condition; struct ASTNode* then_branch; struct ASTNode* else_branch; } if_stmt;
-
+        
+        // Novos Loops
+        struct { struct ASTNode* condition; struct ASTNode* body; } while_loop;
+        struct { 
+            struct ASTNode* init; 
+            struct ASTNode* condition; 
+            struct ASTNode* step; 
+            struct ASTNode* body; 
+        } for_loop;
     } data;
 };
 
@@ -87,8 +98,11 @@ ASTNode* ast_new_typeof(ASTNode* expr);
 
 ASTNode* ast_new_binary_op(ASTNode* left, char* op, ASTNode* right);
 ASTNode* ast_new_return(ASTNode* value);
-
 ASTNode* ast_new_if(ASTNode* condition, ASTNode* then_branch, ASTNode* else_branch);
+
+// Novos
+ASTNode* ast_new_while(ASTNode* condition, ASTNode* body);
+ASTNode* ast_new_for(ASTNode* init, ASTNode* condition, ASTNode* step, ASTNode* body);
 
 void ast_print(ASTNode* node, int level);
 

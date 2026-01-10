@@ -125,7 +125,7 @@ ASTNode* ast_new_typeof(ASTNode* expr) {
 ASTNode* ast_new_binary_op(ASTNode* left, char* op, ASTNode* right) {
     ASTNode* node = create_node(AST_BINARY_OP);
     node->data.binary_op.left = left;
-    node->data.binary_op.op = strdup(op); // Copia a string do operador
+    node->data.binary_op.op = strdup(op);
     node->data.binary_op.right = right;
     return node;
 }
@@ -137,10 +137,27 @@ ASTNode* ast_new_return(ASTNode* value) {
 }
 
 ASTNode* ast_new_if(ASTNode* condition, ASTNode* then_branch, ASTNode* else_branch) {
-    ASTNode* node = create_node(AST_IF); // Certifique-se que AST_IF está no enum do ast.h
+    ASTNode* node = create_node(AST_IF);
     node->data.if_stmt.condition = condition;
     node->data.if_stmt.then_branch = then_branch;
     node->data.if_stmt.else_branch = else_branch;
+    return node;
+}
+
+// Novos Loops
+ASTNode* ast_new_while(ASTNode* condition, ASTNode* body) {
+    ASTNode* node = create_node(AST_WHILE);
+    node->data.while_loop.condition = condition;
+    node->data.while_loop.body = body;
+    return node;
+}
+
+ASTNode* ast_new_for(ASTNode* init, ASTNode* condition, ASTNode* step, ASTNode* body) {
+    ASTNode* node = create_node(AST_FOR);
+    node->data.for_loop.init = init;
+    node->data.for_loop.condition = condition;
+    node->data.for_loop.step = step;
+    node->data.for_loop.body = body;
     return node;
 }
 
@@ -236,6 +253,27 @@ void ast_print(ASTNode* node, int level) {
                 ast_print(node->data.if_stmt.else_branch, level + 2);
             }
             break;
+        
+        case AST_WHILE:
+            printf("While\n");
+            print_indent(level + 1); printf("Condition:\n");
+            ast_print(node->data.while_loop.condition, level + 2);
+            print_indent(level + 1); printf("Body:\n");
+            ast_print(node->data.while_loop.body, level + 2);
+            break;
+
+        case AST_FOR:
+            printf("For\n");
+            print_indent(level + 1); printf("Init:\n");
+            ast_print(node->data.for_loop.init, level + 2);
+            print_indent(level + 1); printf("Cond:\n");
+            ast_print(node->data.for_loop.condition, level + 2);
+            print_indent(level + 1); printf("Step:\n");
+            ast_print(node->data.for_loop.step, level + 2);
+            print_indent(level + 1); printf("Body:\n");
+            ast_print(node->data.for_loop.body, level + 2);
+            break;
+
         default:
             printf("Unknown Node\n");
     }

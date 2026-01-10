@@ -3,8 +3,6 @@
 #include <ctype.h>
 #include <stdio.h> 
 
-// --- Helpers Internos ---
-
 void lexer_init(Lexer* l, const char* input) {
     l->input = input;
     l->input_len = strlen(input);
@@ -13,7 +11,6 @@ void lexer_init(Lexer* l, const char* input) {
     l->line = 1;
     l->column = 0;
     
-    // Prime o primeiro caractere
     if (l->read_position >= l->input_len) {
         l->ch = 0;
     } else {
@@ -24,7 +21,7 @@ void lexer_init(Lexer* l, const char* input) {
 
 void read_char(Lexer* l) {
     if (l->read_position >= l->input_len) {
-        l->ch = 0; // EOF
+        l->ch = 0;
     } else {
         l->ch = l->input[l->read_position];
     }
@@ -50,13 +47,10 @@ void skip_whitespace(Lexer* l) {
     }
 }
 
-// Verifica Keywords do LDD v1.4
 TokenType lookup_ident(const char* ident, int length) {
-    // Helper macro para comparar strings de tamanho fixo
     #define CHECK_KEYWORD(str, type) \
         if (length == (int)strlen(str) && strncmp(ident, str, length) == 0) return type;
 
-    // Tipos Primitivos
     CHECK_KEYWORD("int", TOK_TYPE_INT);
     CHECK_KEYWORD("float", TOK_TYPE_FLOAT);
     CHECK_KEYWORD("bool", TOK_TYPE_BOOL);
@@ -65,7 +59,6 @@ TokenType lookup_ident(const char* ident, int length) {
     CHECK_KEYWORD("string", TOK_TYPE_STRING); 
     CHECK_KEYWORD("void", TOK_TYPE_VOID);
 
-    // Estrutura
     CHECK_KEYWORD("fn", TOK_FN);
     CHECK_KEYWORD("class", TOK_CLASS);
     CHECK_KEYWORD("prop", TOK_PROP);
@@ -77,9 +70,12 @@ TokenType lookup_ident(const char* ident, int length) {
     CHECK_KEYWORD("required", TOK_REQUIRED);
     CHECK_KEYWORD("annotation", TOK_ANNOTATION);
 
-    // Controle e Valores
     CHECK_KEYWORD("if", TOK_IF);
     CHECK_KEYWORD("else", TOK_ELSE);
+    // Novos Loops
+    CHECK_KEYWORD("while", TOK_WHILE);
+    CHECK_KEYWORD("for", TOK_FOR);
+
     CHECK_KEYWORD("true", TOK_LIT_BOOL);
     CHECK_KEYWORD("false", TOK_LIT_BOOL);
     CHECK_KEYWORD("null", TOK_NULL);
@@ -92,23 +88,18 @@ TokenType lookup_ident(const char* ident, int length) {
 Token lexer_next_token(Lexer* l) {
     Token tok;
     
-    // Loop para pular whitespace E comentários recursivamente
     while (1) {
         skip_whitespace(l);
-
-        // Verifica se é comentário de linha //
+        // Ignora comentários //
         if (l->ch == '/' && peek_char(l) == '/') {
-            // Consome até o fim da linha
             while (l->ch != '\n' && l->ch != 0) {
                 read_char(l);
             }
-            // O loop volta para o topo e consome o \n no skip_whitespace
             continue; 
         }
-        break; // Se não for whitespace nem comentário, segue para ler o token
+        break; 
     }
 
-    // Configuração inicial do token
     tok.line = l->line;
     tok.column = l->column;
     tok.literal = &l->input[l->position]; 
@@ -123,10 +114,7 @@ Token lexer_next_token(Lexer* l) {
         case '+': tok.type = TOK_PLUS; break;
         case '-': tok.type = TOK_MINUS; break;
         case '*': tok.type = TOK_STAR; break;
-        
-        // CORREÇÃO: Slash simples agora é divisão
         case '/': tok.type = TOK_SLASH; break; 
-        
         case '!':
             if (peek_char(l) == '=') {
                 read_char(l); tok.length = 2; tok.type = TOK_NEQ;
@@ -166,7 +154,6 @@ Token lexer_next_token(Lexer* l) {
             return tok;
 
         case '"':
-            // Leitura de String Literal
             tok.type = TOK_LIT_STRING;
             tok.literal = &l->input[l->position]; 
             read_char(l); 
@@ -177,19 +164,14 @@ Token lexer_next_token(Lexer* l) {
             return tok; 
             
         case 0:
-            tok.type = TOK_EOF;
-            tok.literal = "";
-            tok.length = 0;
+            tok.type = TOK_EOF; tok.literal = ""; tok.length = 0;
             break;
             
         default:
             if (isalpha(l->ch) || l->ch == '_') {
                 int start_pos = l->position;
                 int len = 0;
-                while (isalnum(l->ch) || l->ch == '_') {
-                    read_char(l);
-                    len++;
-                }
+                while (isalnum(l->ch) || l->ch == '_') { read_char(l); len++; }
                 tok.type = lookup_ident(&l->input[start_pos], len);
                 tok.literal = &l->input[start_pos];
                 tok.length = len;
@@ -198,18 +180,11 @@ Token lexer_next_token(Lexer* l) {
                 int start_pos = l->position;
                 int len = 0;
                 TokenType type = TOK_LIT_INT;
-                while (isdigit(l->ch)) {
-                    read_char(l);
-                    len++;
-                }
+                while (isdigit(l->ch)) { read_char(l); len++; }
                 if (l->ch == '.') {
                     type = TOK_LIT_FLOAT;
-                    read_char(l);
-                    len++;
-                    while (isdigit(l->ch)) {
-                        read_char(l);
-                        len++;
-                    }
+                    read_char(l); len++;
+                    while (isdigit(l->ch)) { read_char(l); len++; }
                 }
                 tok.type = type;
                 tok.literal = &l->input[start_pos];
@@ -219,7 +194,6 @@ Token lexer_next_token(Lexer* l) {
                 tok.type = TOK_ILLEGAL;
             }
     }
-
     read_char(l);
     return tok;
 }
@@ -256,17 +230,21 @@ const char* token_type_to_str(TokenType type) {
         case TOK_RPAREN: return "RPAREN";
         case TOK_LBRACE: return "LBRACE";
         case TOK_RBRACE: return "RBRACE";
+        case TOK_LBRACKET: return "LBRACKET";
+        case TOK_RBRACKET: return "RBRACKET";
+        
         case TOK_IF: return "IF";
         case TOK_ELSE: return "ELSE";
-        case TOK_TYPEOF: return "TYPEOF";
+        case TOK_WHILE: return "WHILE";
+        case TOK_FOR: return "FOR";
 
+        case TOK_TYPEOF: return "TYPEOF";
         case TOK_EQ: return "EQ (==)";
         case TOK_NEQ: return "NEQ (!=)";
         case TOK_LT: return "LT (<)";
         case TOK_GT: return "GT (>)";
         case TOK_LTE: return "LTE (<=)";
         case TOK_GTE: return "GTE (>=)";
-
         default: return "TOKEN";
     }
 }

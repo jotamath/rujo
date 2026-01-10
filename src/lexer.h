@@ -28,8 +28,11 @@ typedef enum {
 
     TOK_TYPEOF,
 
+    // Controle de Fluxo
     TOK_IF,
     TOK_ELSE,
+    TOK_WHILE, // Novo
+    TOK_FOR,   // Novo
 
     TOK_TYPE_INT,
     TOK_TYPE_FLOAT,

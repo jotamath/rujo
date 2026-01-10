@@ -26,7 +26,10 @@ void gen_node(ASTNode* node, FILE* out) {
             ASTNode* stmt = node->data.block.statements;
             while (stmt) {
                 gen_node(stmt, out);
-                if (stmt->type == AST_CALL) fprintf(out, ";\n");
+                // CORREÇÃO: Adiciona ; se for Chamada OU Atribuição
+                if (stmt->type == AST_CALL || stmt->type == AST_ASSIGN) {
+                    fprintf(out, ";\n");
+                }
                 stmt = stmt->next;
             }
             fprintf(out, "}\n");
@@ -45,7 +48,7 @@ void gen_node(ASTNode* node, FILE* out) {
             gen_node(node->data.assign.target, out);
             fprintf(out, " = ");
             gen_node(node->data.assign.value, out);
-            fprintf(out, ";\n");
+            // AST_ASSIGN não gera ; aqui para permitir uso dentro de for(..;..; step)
             break;
 
         case AST_ACCESS:
@@ -58,10 +61,8 @@ void gen_node(ASTNode* node, FILE* out) {
             }
             break;
 
-        // --- ATUALIZADO: PRINT INTELIGENTE ---
         case AST_CALL:
             if (strcmp(node->data.call.name, "print") == 0) {
-                // Usa a macro RUJO_PRINT que definiremos no topo do arquivo C
                 fprintf(out, "RUJO_PRINT("); 
                 if (node->data.call.args) {
                     gen_node(node->data.call.args, out);
@@ -81,7 +82,6 @@ void gen_node(ASTNode* node, FILE* out) {
             }
             break;
 
-        // --- NOVO: IF / ELSE ---
         case AST_IF:
             fprintf(out, "if (");
             gen_node(node->data.if_stmt.condition, out);
@@ -91,6 +91,28 @@ void gen_node(ASTNode* node, FILE* out) {
                 fprintf(out, " else ");
                 gen_node(node->data.if_stmt.else_branch, out);
             }
+            break;
+
+        case AST_WHILE:
+            fprintf(out, "while (");
+            gen_node(node->data.while_loop.condition, out);
+            fprintf(out, ") ");
+            gen_node(node->data.while_loop.body, out);
+            break;
+
+        case AST_FOR:
+            fprintf(out, "for (");
+            if (node->data.for_loop.init) gen_node(node->data.for_loop.init, out);
+            else fprintf(out, ";");
+            
+            fprintf(out, " "); 
+            if (node->data.for_loop.condition) gen_node(node->data.for_loop.condition, out);
+            fprintf(out, "; ");
+            
+            if (node->data.for_loop.step) gen_node(node->data.for_loop.step, out);
+            fprintf(out, ") ");
+            
+            gen_node(node->data.for_loop.body, out);
             break;
 
         case AST_IDENTIFIER:
@@ -150,13 +172,10 @@ void gen_structs(ASTNode* node, FILE* out) {
     gen_structs(node->next, out);
 }
 
-// --- ATUALIZADO: Evita conflito com main ---
 void gen_methods(ASTNode* node, FILE* out) {
     if (!node) return;
     
     if (node->type == AST_FN_DECL) {
-        // SEGURANÇA: Se o usuário definiu 'main', ignoramos aqui para usar o wrapper
-        // (Ou poderíamos abortar o wrapper, mas por enquanto ignoramos a definição manual)
         if (strcmp(node->data.fn_decl.name, "main") != 0) {
             fprintf(out, "%s %s(", map_type(node->data.fn_decl.return_type), node->data.fn_decl.name);
             ASTNode* param = node->data.fn_decl.params;
@@ -206,7 +225,8 @@ void gen_main(ASTNode* node, FILE* out) {
     while (current) {
         if (current->type != AST_CLASS_DECL && current->type != AST_FN_DECL) {
             gen_node(current, out);
-            if (current->type == AST_CALL) {
+            // Também adiciona ; no main se for solto
+            if (current->type == AST_CALL || current->type == AST_ASSIGN) {
                 fprintf(out, ";\n");
             }
         }
@@ -222,9 +242,8 @@ void codegen_generate(ASTNode* root, FILE* out) {
     fprintf(out, "#include <stdint.h>\n");
     fprintf(out, "#include <stdbool.h>\n\n");
 
-    // --- MACRO DE PRINT INTELIGENTE ---
     fprintf(out, "void print_int(int x) { printf(\"%%d\\n\", x); }\n");
-    fprintf(out, "void print_float(float x) { printf(\"%%f\\n\", x); }\n"); // C promove float pra double no printf
+    fprintf(out, "void print_float(float x) { printf(\"%%f\\n\", x); }\n"); 
     fprintf(out, "void print_string(const char* x) { printf(\"%%s\\n\", x); }\n");
     fprintf(out, "void print_bool(bool x) { printf(\"%%s\\n\", x ? \"true\" : \"false\"); }\n\n");
 
@@ -236,9 +255,7 @@ void codegen_generate(ASTNode* root, FILE* out) {
     fprintf(out, "    char*: print_string, \\\n");
     fprintf(out, "    const char*: print_string \\\n");
     fprintf(out, ")(x)\n\n");
-    // ----------------------------------
 
-    // Macro TypeOf
     fprintf(out, "#define RUJO_TYPEOF(x) _Generic((x), \\\n");
     fprintf(out, "    _Bool: \"bool\", \\\n");
     fprintf(out, "    uint8_t: \"byte\", \\\n");

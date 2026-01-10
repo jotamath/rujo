@@ -29,31 +29,30 @@ void print_bool(bool x) { printf("%s\n", x ? "true" : "false"); }
     default: "unknown" \
 )
 
-int calcularDobro(int n) {
-return (n * 2);
-}
-
-int somar(int a, int b) {
-return (a + b);
-}
-
 int main() {
-RUJO_PRINT("--- Teste de Funcoes ---");
-int resultado = somar(10, 5);
-RUJO_PRINT("10 + 5 e igual a (deve ser 15):");
-RUJO_PRINT(resultado);
-RUJO_PRINT(RUJO_TYPEOF(resultado));
-RUJO_PRINT("--- Teste de Matematica ---");
-int conta = (10 + (5 * 2));
-if ((conta == 20)) {
-RUJO_PRINT("Sucesso: Matematica funciona (Resultado = 20)");
+RUJO_PRINT("--- Testando WHILE ---");
+int contador = 0;
+while ((contador < 3)) {
+RUJO_PRINT("Contagem While:");
+RUJO_PRINT(contador);
+contador = (contador + 1);
 }
- else {
-RUJO_PRINT("Erro: Precedencia incorreta");
+RUJO_PRINT("--- Testando FOR ---");
+for (int i = 0;
+ (i < 5); i = (i + 1)) {
+RUJO_PRINT("Iteracao For:");
+RUJO_PRINT(i);
 }
-int complexo = (calcularDobro(5) + (100 / 2));
-if ((complexo == 60)) {
-RUJO_PRINT("Sucesso: Funcoes misturadas com Matematica (Resultado = 60)");
+RUJO_PRINT("--- Teste de Lógica Complexa ---");
+int soma = 0;
+for (int j = 0;
+ (j < 5); j = (j + 1)) {
+soma = (soma + j);
+}
+RUJO_PRINT("A soma de 0 a 4 deve ser 10. Resultado:");
+RUJO_PRINT(soma);
+if ((soma == 10)) {
+RUJO_PRINT("Sucesso Total nos Loops!");
 }
     return 0;
 }

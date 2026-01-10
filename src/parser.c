@@ -18,7 +18,6 @@ ASTNode* parse_term(Lexer* l);
 ASTNode* parse_factor(Lexer* l);
 ASTNode* parse_primary(Lexer* l);
 
-
 Token curr_tok;
 
 void parser_init(Lexer* l) {
@@ -258,6 +257,14 @@ ASTNode* parse_statement(Lexer* l) {
     // Identificadores (Chamadas ou Atribuições)
     if (curr_tok.type == TOK_IDENT) {
         ASTNode* expr = parse_expression(l);
+        
+        if (curr_tok.type == TOK_ASSIGN && expr->type == AST_IDENTIFIER) {
+            next_token(l); // consome =
+            ASTNode* value = parse_expression(l);
+            expect(l, TOK_SEMICOLON);
+            return ast_new_assign(expr, value);
+        }
+
         expect(l, TOK_SEMICOLON);
         return expr;
     }
@@ -277,7 +284,73 @@ ASTNode* parse_statement(Lexer* l) {
         return ast_new_block(stmts);
     }
 
-    // Funções (Agora lê parâmetros)
+    // IF
+    if (curr_tok.type == TOK_IF) {
+        next_token(l);
+        expect(l, TOK_LPAREN);
+        ASTNode* condition = parse_expression(l);
+        expect(l, TOK_RPAREN);
+        
+        ASTNode* then_branch = parse_statement(l);
+        ASTNode* else_branch = NULL;
+
+        if (curr_tok.type == TOK_ELSE) {
+            next_token(l);
+            else_branch = parse_statement(l);
+        }
+
+        return ast_new_if(condition, then_branch, else_branch);
+    }
+
+    // WHILE
+    if (curr_tok.type == TOK_WHILE) {
+        next_token(l); // consome while
+        expect(l, TOK_LPAREN);
+        ASTNode* condition = parse_expression(l);
+        expect(l, TOK_RPAREN);
+        ASTNode* body = parse_statement(l);
+        return ast_new_while(condition, body);
+    }
+
+    // FOR (C-Style)
+    if (curr_tok.type == TOK_FOR) {
+        next_token(l);
+        expect(l, TOK_LPAREN);
+        
+        ASTNode* init = NULL;
+        if (curr_tok.type == TOK_TYPE_INT) { 
+             init = parse_var_decl(l);
+        } else {
+             if (curr_tok.type != TOK_SEMICOLON) {
+                 init = parse_expression(l);
+             }
+             if (curr_tok.type == TOK_SEMICOLON) next_token(l); 
+        }
+
+        ASTNode* cond = NULL;
+        if (curr_tok.type != TOK_SEMICOLON) {
+            cond = parse_expression(l);
+        }
+        expect(l, TOK_SEMICOLON);
+
+        ASTNode* step = NULL;
+        if (curr_tok.type != TOK_RPAREN) {
+            ASTNode* expr = parse_expression(l);
+            if (curr_tok.type == TOK_ASSIGN && expr->type == AST_IDENTIFIER) {
+                next_token(l);
+                ASTNode* val = parse_expression(l);
+                step = ast_new_assign(expr, val);
+            } else {
+                step = expr;
+            }
+        }
+        expect(l, TOK_RPAREN);
+
+        ASTNode* body = parse_statement(l);
+        return ast_new_for(init, cond, step, body);
+    }
+
+    // Funções
     if (curr_tok.type == TOK_FN) {
         next_token(l);
         char* name = rujo_strndup(curr_tok.literal, curr_tok.length);
@@ -288,7 +361,6 @@ ASTNode* parse_statement(Lexer* l) {
         ASTNode* params = NULL;
         ASTNode* last_param = NULL;
 
-        // Parse Params
         if (curr_tok.type != TOK_RPAREN) {
             while (1) {
                 char* p_type = parse_type_name(l);
@@ -314,24 +386,6 @@ ASTNode* parse_statement(Lexer* l) {
         
         ASTNode* body = parse_statement(l);
         return ast_new_fn_decl(name, ret_type, params, body);
-    }
-
-    // IF/ELSE
-    if (curr_tok.type == TOK_IF) {
-        next_token(l); // consome 'if'
-        expect(l, TOK_LPAREN);
-        ASTNode* condition = parse_expression(l);
-        expect(l, TOK_RPAREN);
-        
-        ASTNode* then_branch = parse_statement(l); // Geralmente um bloco { }
-        ASTNode* else_branch = NULL;
-
-        if (curr_tok.type == TOK_ELSE) {
-            next_token(l);
-            else_branch = parse_statement(l);
-        }
-
-        return ast_new_if(condition, then_branch, else_branch);
     }
 
     // Return
