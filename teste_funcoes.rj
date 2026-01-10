@@ -1,0 +1,6 @@
+fn soma(int a, int b) : int {
+    return a + b;
+}
+
+print(soma(3, 5));
+

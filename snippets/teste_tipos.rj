@@ -1,0 +1,21 @@
+
+int i = 42;
+float f = 3.14;
+bool b = true;
+byte y = 255;
+char c = 'A';
+string s = "Ola";
+
+print("--- Verificando Integridade dos Tipos ---");
+
+print(typeOf(i));     // Deve imprimir: int
+print(typeOf(f));     // Deve imprimir: float
+print(typeOf(b));     // Deve imprimir: bool
+print(typeOf(y));     // Deve imprimir: byte
+print(typeOf(c));     // Deve imprimir: char
+print(typeOf(s));     // Deve imprimir: string
+
+print("--- Testando Literais Diretos ---");
+print(typeOf(100));         // int
+print(typeOf(true));        // bool
+print(typeOf("Texto"));     // string

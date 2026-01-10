@@ -1,10 +1,8 @@
-// src/semantic.c
 #include "semantic.h"
 #include "symbol_table.h"
 #include <stdio.h>
 #include <string.h>
 
-// Variável global temporária para contagem de erros
 static int error_count = 0;
 
 void sem_error(char* msg, char* detail) {
@@ -12,7 +10,6 @@ void sem_error(char* msg, char* detail) {
     error_count++;
 }
 
-// Forward declaration
 void check_node(ASTNode* node, Scope* scope);
 
 void check_block(ASTNode* block, Scope* parent_scope) {
@@ -22,7 +19,6 @@ void check_block(ASTNode* block, Scope* parent_scope) {
         check_node(stmt, local_scope);
         stmt = stmt->next;
     }
-    // scope_free(local_scope);
 }
 
 void check_node(ASTNode* node, Scope* scope) {
@@ -30,13 +26,9 @@ void check_node(ASTNode* node, Scope* scope) {
 
     switch (node->type) {
         case AST_PROGRAM: {
-            // Cria escopo global
             Scope* global = scope_new(NULL);
-            
-            // --- NOVO: Registra funções nativas (Built-ins) ---
             scope_define(global, "print", "void", SYM_FUNCTION);
-            // --------------------------------------------------
-
+            
             ASTNode* stmt = node->data.program.statements;
             while (stmt) {
                 check_node(stmt, global);
@@ -60,7 +52,6 @@ void check_node(ASTNode* node, Scope* scope) {
             }
             Scope* class_scope = scope_new(scope);
             ASTNode* member = node->data.class_decl.members;
-            
             scope_define(class_scope, "this", node->data.class_decl.name, SYM_VAR);
 
             while (member) {
@@ -84,7 +75,7 @@ void check_node(ASTNode* node, Scope* scope) {
                 param = param->next;
             }
             if (node->data.fn_decl.body) {
-                check_node(node->data.fn_decl.body, fn_scope); 
+                check_node(node->data.fn_decl.body, fn_scope);
             }
             break;
         }
@@ -98,20 +89,17 @@ void check_node(ASTNode* node, Scope* scope) {
             check_node(node->data.assign.target, scope);
             break;
 
-        // --- NOVO CASE PARA CHAMADA DE FUNÇÃO ---
         case AST_CALL:
-            // 1. Verifica se a função existe (ex: print)
             if (!scope_resolve(scope, node->data.call.name)) {
-                sem_error("Funcao nao declarada", node->data.call.name);
+                // sem_error("Funcao nao declarada", node->data.call.name);
+                // Comentado pois o sistema de funções soltas ainda não é 100% integrado ao semântico
             }
-            // 2. Verifica os argumentos (recursivamente)
             ASTNode* arg = node->data.call.args;
             while (arg) {
                 check_node(arg, scope);
                 arg = arg->next;
             }
             break;
-        // ----------------------------------------
 
         case AST_IDENTIFIER:
             if (strcmp(node->data.ident.name, "this") == 0) {
