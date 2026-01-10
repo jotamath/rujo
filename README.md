@@ -5,14 +5,10 @@
 
 > **Slogan:** Simples como Go, Segura como Rust, Legível como Python.
 
-![Status](https://img.shields.io/badge/status-pre--alpha-orange)
-![Version](https://img.shields.io/badge/version-1.4-blue)
-![Build](https://img.shields.io/badge/build-passing-green)
-
 ## 🦁 Identidade
 
 * **Nome:** Rujo
-* **Mascote:** A definir
+* **Mascote:** A definir. 
 * **Extensão:** `.rj`
 * **Filosofia:** Previsibilidade, performance e clareza.
 
@@ -23,17 +19,20 @@ Rujo é uma linguagem compilada, tipada estaticamente, sem garbage collector tra
 ## 1️⃣ Princípios Fundamentais
 
 ### 1.1 Simplicidade Radical
+
 * Poucas palavras reservadas.
 * Sintaxe explícita.
 * Nenhuma inferência que afete performance.
 * Ponto e vírgula (`;`) obrigatório.
 
 ### 1.2 Segurança em Tempo de Compilação
+
 * Null safety explícito.
 * Ownership e borrowing.
 * Sem exceções (Erros tratados como valores).
 
 ### 1.3 Performance Previsível
+
 * Sem GC *stop-the-world*.
 * Sem *stack unwinding* implícito.
 * Controle de memória sem exigir gerenciamento manual.
@@ -42,12 +41,11 @@ Rujo é uma linguagem compilada, tipada estaticamente, sem garbage collector tra
 
 ## 2️⃣ Estrutura de Projeto e CLI
 
-### 2.1 CLI Oficial (Planejado)
+### 2.1 CLI Oficial
+
 ```bash
-rujo init meu_projeto
-rujo build
-rujo run
-rujo test
+rujo build arquivo.rj  # Compila para binário nativo
+rujo run arquivo.rj    # Compila e executa imediatamente
 
 ```
 
@@ -67,39 +65,31 @@ meu_projeto/
 
 ### 3.1 Tipagem
 
-Estática, Forte e Explícita.
+Estática, Forte e Explícita. Suporta introspecção em tempo de compilação via `typeOf()`.
 
 ```rujo
 int x = 10;
 float y = 2.5;
 bool ativo = true;
+print(typeOf(x)); // Saída: "int"
 
 ```
 
-### 3.2 Tipos Primitivos
+### 3.2 Tipos Primitivos Implementados
 
-| Tipo | Descrição |
-| --- | --- |
-| `int` | Inteiro |
-| `float` | Ponto flutuante |
-| `bool` | Booleano |
-| `byte` | 8 bits |
-| `char` | Unicode scalar (não UTF-8) |
-| `string` | UTF-8 |
-| `void` | Ausência de valor |
+| Tipo | Descrição | Status |
+| --- | --- | --- |
+| `int` | Inteiro (32/64 bits) | ✅ |
+| `float` | Ponto flutuante | ✅ |
+| `bool` | Booleano (`true`/`false`) | ✅ |
+| `byte` | 8 bits (`uint8_t`) | ✅ |
+| `char` | Unicode scalar (32 bits) | ✅ |
+| `string` | UTF-8 (Imutável) | ✅ |
+| `void` | Ausência de valor | ✅ |
 
-### 3.3 String (Primitivo)
+### 3.3 Null Safety (Planejado)
 
-UTF-8 garantido, alocada no heap, imutável por padrão.
-
-```rujo
-string nome = "Rujo";
-
-```
-
-### 3.4 Null Safety
-
-Qualquer tentativa de usar null fora de `?` é erro de compilação.
+Qualquer tentativa de usar null fora de `?` será erro de compilação.
 
 ```rujo
 string titulo;        // nunca null
@@ -109,9 +99,9 @@ string? descricao;    // pode ser null
 
 ---
 
-## 4️⃣ Funções
+## 4️⃣ Funções e Fluxo
 
-### 4.1 Declaração
+### 4.1 Declaração e Retorno
 
 ```rujo
 fn soma(int a, int b): int {
@@ -120,11 +110,17 @@ fn soma(int a, int b): int {
 
 ```
 
-### 4.2 Funções sem Retorno
+### 4.2 Loops e Condicionais
 
 ```rujo
-fn log(string msg): void {
-    print(msg);
+if (x > 10) { ... } else { ... }
+
+while (x < 100) {
+    x = x + 1;
+}
+
+for (int i = 0; i < 10; i = i + 1) {
+    print(i);
 }
 
 ```
@@ -133,21 +129,12 @@ fn log(string msg): void {
 
 ## 5️⃣ Erros (Sem Exceções)
 
-### 5.1 Result
+### 5.1 Result (Planejado)
 
 Obrigatório tratar o retorno.
 
 ```rujo
 fn lerArquivo(string path): Result<string, Error> { ... }
-
-// Uso:
-Result<string, Error> res = lerArquivo("dados.txt");
-
-if res.isErr() {
-    return res.err();
-}
-string dados = res.unwrap();
-
 ```
 
 ---
@@ -163,121 +150,56 @@ class Livro {
     prop string titulo;
     prop string isbn;
 }
-
-```
-
-### 6.2 Visibilidade
-
-`private` por padrão. `pub` torna visível externamente.
-
-```rujo
-pub class Livro {
-    pub prop string titulo;
-}
-
-```
-
----
-
-## 7️⃣ Inicialização de Objetos
-
-### 7.1 Construtor Oficial — `init`
-
-`init` é o único construtor permitido.
-
-```rujo
-class DizerOi {
-    prop string mensagem;
-
-    init(string saudacao) {
-        this.mensagem = saudacao;
-    }
-}
-
-// Uso:
-DizerOi d = new DizerOi("Olá!");
-
-```
-
----
-
-## 8️⃣ Ownership e Borrowing (Roadmap)
-
-Regras verificadas em compile-time (sem custo de runtime):
-
-* Apenas um borrow mutável (`&mut`).
-* Vários borrows imutáveis (`&`).
-
-```rujo
-fn processar(Livro livro);       // move
-fn ler(&Livro livro);            // borrow imutável
-fn editar(&mut Livro livro);     // borrow mutável
-
 ```
 
 ---
 
 ## 🚦 Status do Desenvolvimento (Roadmap)
 
-O compilador atual ("Rujo Bootstrap") é escrito em C. Ele realiza a análise léxica, sintática, semântica e transpila o código Rujo para C11, que é então compilado pelo GCC.
+O compilador atual ("Rujo Bootstrap") é escrito em C. Ele transpila código Rujo para C11 e utiliza o GCC para gerar o binário final.
 
-### ✅ Realizado (Fase 1 & 2 - Core)
+### ✅ Realizado (Fase 1 & 2 - Core v1.4)
 
-* [x] **Lexer:** Tokenização completa da sintaxe básica.
-* [x] **Parser:** Análise sintática (AST) implementada.
-* [x] Declaração de variáveis (`int`, `string`).
-* [x] Declaração de Classes e Propriedades (`class`, `prop`).
-* [x] Construtor (`init`).
-* [x] Blocos de código e Escopo.
-* [x] Atribuições (`x = y`) e Acesso a membros (`this.prop`).
-* [x] Chamadas de Função (`print("Ola")`).
-
-
-* [x] **Symbol Table:** Suporte a escopos aninhados (Global -> Classe -> Função -> Bloco).
-* [x] **Semantic Analysis:**
-* [x] Detecção de variáveis não declaradas.
-* [x] Detecção de redeclaração de variáveis.
-* [x] Verificação básica de tipos (impedir `int x = "string"`).
-* [x] Validação de contexto do `this`.
+* [x] **Lexer & Parser:** Análise léxica e sintática completa.
+* [x] **Tipos Primitivos:** `int`, `float`, `bool`, `byte`, `char`, `string`.
+* [x] **Declaração de Variáveis:** Tipagem forte.
+* [x] **Funções:** Declaração, parâmetros e `return` de valores.
+* [x] **Matemática:** Operadores `+`, `-`, `*`, `/` com precedência correta.
+* [x] **Lógica:** Comparadores `==`, `!=`, `<`, `>`, `<=`, `>=`.
+* [x] **Fluxo de Controle:**
+* [x] `if` / `else`
+* [x] `while`
+* [x] `for` (C-Style)
 
 
-* [x] **Codegen (Transpiler):** Geração de código C válido.
-* [x] Structs equivalentes.
-* [x] Métodos com *name mangling* (`Classe_init`).
-* [x] Função `main` automática.
-* [x] Mapeamento de `print` para `printf`.
+* [x] **Introspecção:** `typeOf(x)` (Resolvido em compile-time).
+* [x] **IO:** `print()` polimórfico (aceita qualquer primitivo).
+* [x] **Comentários:** Suporte a `//`.
+* [x] **CLI:** Comandos `run` e `build`.
+
+### 🚧 Em Andamento / TODO
+
+* [ ] **Arrays e Vetores:**
+* [ ] Declaração `int[]`.
+* [ ] Acesso por índice `arr[0]`.
+* [ ] Alocação dinâmica.
 
 
-* [x] **Build System:** Makefile configurado.
-
-### 🚧 Em Andamento / TODO (Fase 3 & 4)
-
-* [ ] **Fluxo de Controle:**
-* [ ] `if` / `else`
-* [ ] Loops (`while`, `for`)
-* [ ] `return` statements.
+* [ ] **Instanciação de Classes:**
+* [ ] Keyword `new`.
+* [ ] Construtor `init` funcional.
+      
+* [ ] **Input:**
+* [ ] Implementar `scan` ou leitura de console.
 
 
-* [ ] **Expressões Matemáticas:**
-* [ ] Operações binárias (`+`, `-`, `*`, `/`).
-* [ ] Operações lógicas (`==`, `!=`, `!`).
 
+### 🔮 Previsto
 
-* [ ] **Input/Output:**
-* [ ] Implementar `scan` ou leitura de input.
-
-
-* [ ] **Instanciação:**
-* [ ] Implementar keyword `new` para alocação de objetos.
-
-
-* [ ] **Types Avançados:**
-* [ ] Implementar Null Safety (`?`).
-* [ ] Implementar Arrays/Listas.
-* [ ] Implementar `Result<T, E>`.
-
-
-* [ ] **Ownership Checker:** O grande desafio da Fase 4.
+* [ ] **Generics:** `List<T>`.
+* [ ] **Result Type:** Tratamento de erros `Result<T, E>`.
+* [ ] **Null Safety:** Verificação estática de nulos.
+* [ ] **Ownership Checker:** O grande diferencial (Borrow Checker).
 
 ---
 
@@ -285,30 +207,27 @@ O compilador atual ("Rujo Bootstrap") é escrito em C. Ele realiza a análise l�
 
 Pré-requisitos: `gcc` e `make` (ou MinGW no Windows).
 
-1. **Compilar o Compilador:**
+1. **Compilar o Compilador Rujo:**
+
 ```bash
 make
+# Gera o executável rujo (ou rujo.exe)
 
 ```
 
+2. **Rodar um script Rujo (Modo Run):**
 
-2. **Compilar um arquivo .rj:**
 ```bash
-./rujo seu_arquivo.rj
-# Isso gera um arquivo out.c
+./rujo run meu_script.rj
+# Compila e executa automaticamente
 
 ```
 
+3. **Compilar para executável (Modo Build):**
 
-3. **Gerar o binário final:**
 ```bash
-gcc out.c -o programa_final
-./programa_final
-
-```
-
-
-
-```
+./rujo build meu_script.rj
+# Gera o arquivo 'program.exe' nativo
+./program.exe
 
 ```
