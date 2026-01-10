@@ -43,7 +43,7 @@ for (int i = 0;
 RUJO_PRINT("Iteracao For:");
 RUJO_PRINT(i);
 }
-RUJO_PRINT("--- Teste de Lógica Complexa ---");
+RUJO_PRINT("--- Teste de Logica Complexa ---");
 int soma = 0;
 for (int j = 0;
  (j < 5); j = (j + 1)) {
