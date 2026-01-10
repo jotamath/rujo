@@ -1,0 +1,36 @@
+// 1. Definindo uma função que retorna valor
+fn calcularDobro(int n): int {
+    return n * 2;
+}
+
+// 2. Definindo uma função com múltiplos parâmetros
+fn somar(int a, int b): int {
+    return a + b;
+}
+
+print("--- Teste de Funcoes ---");
+int resultado = somar(10, 5);
+print("10 + 5 e igual a (deve ser 15):" );
+print(resultado);
+print(typeOf(resultado)); // Confirma que é int
+
+// 3. Teste de Precedência Matemática
+print("--- Teste de Matematica ---");
+// Na matemática, 5 * 2 acontece antes do + 10.
+// Se der 20, está certo (10 + 10).
+// Se der 30, está errado ((10 + 5) * 2).
+int conta = 10 + 5 * 2; 
+
+// Vamos usar um truque do C para printar o número já que nosso print ainda é só string
+// Se o Rujo estiver certo, o compilador C vai gerar a conta certa.
+if (conta == 20) {
+    print("Sucesso: Matematica funciona (Resultado = 20)");
+} else {
+    print("Erro: Precedencia incorreta");
+}
+
+// 4. Teste complexo
+int complexo = calcularDobro(5) + 100 / 2; // (5*2) + (100/2) = 10 + 50 = 60
+if (complexo == 60) {
+    print("Sucesso: Funcoes misturadas com Matematica (Resultado = 60)");
+}
